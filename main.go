@@ -3,10 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
-	"fmt"
 	eventhub "github.com/Azure/azure-event-hubs-go/v3"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"io"
 	"log"
 	"os"
@@ -15,91 +12,8 @@ import (
 )
 
 func main() {
-	client := createBlobClient("REPLACE_WITH_AZURE_BLOB_STORAGE_ACCOUNT_URL")
-	createBlobContainer(client, "sample-blob-container")
-}
-
-/*
-AZURE BLOB STORAGE FUNCTIONS
-*/
-func createBlobClient(url string) *azblob.Client {
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
-	if err != nil {
-		log.Fatal(err.Error())
-		return nil
-	}
-
-	client, err := azblob.NewClient(url, cred, nil)
-	if err != nil {
-		log.Fatal(err.Error())
-		return nil
-	}
-	return client
-}
-
-func createBlobContainer(client *azblob.Client, name string) bool {
-	var res bool
-	fmt.Printf("Creating blob container %s\n", name)
-	ctx := context.Background()
-	_, err := client.CreateContainer(ctx, name, nil)
-	if err != nil {
-		res = false
-	} else {
-		res = true
-	}
-	return res
-}
-
-func downloadBlob(client *azblob.Client, containerName, filename, path string) bool {
-	file, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err.Error())
-		return false
-	}
-
-	_, err = client.DownloadFile(context.TODO(), containerName, filename, file, nil)
-	if err != nil {
-		log.Fatal(err.Error())
-		return false
-	}
-	return true
-}
-
-func downloadToByteArr(client *azblob.Client, containerName, filename string) []byte {
-	var barr []byte
-	if _, err := client.DownloadBuffer(context.TODO(), containerName, filename, barr, nil); err != nil {
-		log.Fatal(err.Error())
-		return nil
-	}
-	return barr
-}
-
-func uploadBlob(client *azblob.Client, containerName, filename, path string) bool {
-	file, err := os.OpenFile(path+"/"+filename, os.O_RDONLY, 0)
-	if err != nil {
-		log.Fatal(err.Error())
-		return false
-	}
-
-	defer func(file *os.File) {
-		if err := file.Close(); err != nil {
-			log.Fatal(err.Error())
-		}
-	}(file)
-
-	if _, err = client.UploadFile(context.TODO(), containerName, filename, file, nil); err != nil {
-		log.Fatal(err)
-		return false
-	}
-	return true
-}
-
-func uploadFromByteArr(client *azblob.Client, containerName, filename string, barr []byte) bool {
-	if _, err := client.UploadBuffer(context.TODO(), containerName, filename, barr, nil); err != nil {
-		log.Fatal(err.Error())
-		return false
-	}
-	return true
+	b := BlobStorageClient{}
+	b.CreateBlobClient("REPLACE_WITH_AZURE_BLOB_STORAGE_ACCOUNT_URL")
 }
 
 /*
