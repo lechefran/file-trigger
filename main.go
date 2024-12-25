@@ -12,8 +12,12 @@ import (
 )
 
 func main() {
-	b := BlobStorageClient{}
-	b.CreateBlobClient("REPLACE_WITH_AZURE_BLOB_STORAGE_ACCOUNT_URL")
+	// set up azure file trigger
+	azft := AzureFileTrigger{}
+	azft.CreateBlobClient("sample-blob-client-conn-string")
+	azft.SetConsumer("sample-eventhub-producer-conn-string", "sample-eventhub-name", "sample-eventhub-consumer-group")
+	azft.SetProducer("sample-eventhub-producer-conn-string", "sample-eventhub-name")
+
 }
 
 /*

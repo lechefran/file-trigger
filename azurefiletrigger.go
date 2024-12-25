@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"log"
 	"os"
 )
 
 type AzureFileTrigger struct {
-	client *azblob.Client
+	client   *azblob.Client
+	consumer *azeventhubs.ConsumerClient
+	producer *azeventhubs.ProducerClient
 }
 
 func (f *AzureFileTrigger) CreateBlobClient(url string) *AzureFileTrigger {
@@ -29,6 +32,24 @@ func (f *AzureFileTrigger) CreateBlobClient(url string) *AzureFileTrigger {
 	return &AzureFileTrigger{
 		client: client,
 	}
+}
+
+func (f *AzureFileTrigger) SetConsumer(conn, hubName, consumerGroup string) {
+	consumer, err := azeventhubs.NewConsumerClientFromConnectionString(conn, hubName, consumerGroup, nil)
+	if err != nil {
+		log.Fatal(err.Error())
+		return
+	}
+	f.consumer = consumer
+}
+
+func (f *AzureFileTrigger) SetProducer(conn, hubName string) {
+	producer, err := azeventhubs.NewProducerClientFromConnectionString(conn, hubName, nil)
+	if err != nil {
+		log.Fatal(err.Error())
+		return
+	}
+	f.producer = producer
 }
 
 func (f *AzureFileTrigger) CreateBlobContainer(name string) bool {
